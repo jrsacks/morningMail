@@ -11,16 +11,18 @@ def weather_req(type, city="Chicago", state="IL")
   JSON.parse(open("http://api.wunderground.com/api/#{@wunderground_key}/#{type}/q/#{state}/#{city}.json").read)
 end
 
-weather_req("forecast")['forecast']['txt_forecast']['forecastday'].slice(0,4).each do |day|
-  puts day['title'] + ":"
-  day['fcttext'].split('.').each do |line|
-    puts "\t#{line}"
+def print_weather
+  weather_req("forecast")['forecast']['txt_forecast']['forecastday'].slice(0,4).each do |day|
+    puts day['title'] + ":"
+    day['fcttext'].split('.').each do |line|
+      puts "\t#{line}"
+    end
   end
-end
 
-puts "" #Spacing
-weather_req("hourly")['hourly_forecast'].slice(0,16).each do |hour|
-  puts hour['FCTTIME']['civil'] + " " + hour['temp']['english'] + " " + hour['condition']
+  puts "" #Spacing
+  weather_req("hourly")['hourly_forecast'].slice(0,16).each do |hour|
+    puts hour['FCTTIME']['civil'] + " " + hour['temp']['english'] + " " + hour['condition']
+  end
 end
 
 def process_game(game)
@@ -33,9 +35,20 @@ def process_game(game)
   puts ""
 end
 
-yesterday = (Date.today - 1).strftime "%Y-%m-%d" 
-["college-basketball", "nba", "nhl"].each do |sport|
-  doc = Nokogiri::HTML(open("http://sports.yahoo.com/#{sport}/scoreboard/?date=#{yesterday}"))
-  puts "\n#{sport.gsub('-',' ').upcase}"
-  doc.css('.game').each { |g| process_game g }
+def print_sports
+  yesterday = (Date.today - 1).strftime "%Y-%m-%d" 
+  ["college-basketball", "nba", "nhl"].each do |sport|
+    doc = Nokogiri::HTML(open("http://sports.yahoo.com/#{sport}/scoreboard/?date=#{yesterday}"))
+    puts "\n#{sport.gsub('-',' ').upcase}"
+    doc.css('.game').each { |g| process_game g }
+  end
+
+  puts "\nNFL"
+  doc = Nokogiri::HTML(open("http://sports.yahoo.com/nfl/scoreboard/"))
+  doc.css('.game').each do |g| 
+    process_game g if g.attr('data-url').match(yesterday)
+  end
 end
+
+print_weather
+print_sports
