@@ -6,7 +6,7 @@ require 'nokogiri'
 require 'date'
 require 'json'
 
-@wunderground_key = File.open("wunderground.key").read.chomp
+@wunderground_key = File.open(File.dirname(__FILE__) + "/wunderground.key").read.chomp
 def weather_req(type, city="Chicago", state="IL")
   JSON.parse(open("http://api.wunderground.com/api/#{@wunderground_key}/#{type}/q/#{state}/#{city}.json").read)
 end
