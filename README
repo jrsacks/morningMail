@@ -1,0 +1,23 @@
+Morning Mail
+
+Weather, Sports, and Maybe More in a well formatted email to start your day
+
+Installation:
+Postfix and mailutils
+  apt-get install postfix mailutils libsasl2-2 ca-certificates libsasl2-modules
+
+  Configure postfix however you want.... sendmail works just fine for me: http://sendgrid.com/docs/Integrate/Mail_Servers/postfix.html
+  Also added generic mapping to change sender address: http://www.postfix.org/generic.5.html
+
+Set the timezone on a ubuntu server:
+  sudo dpkg-reconfigure tzdata 
+
+Ruby and Gems
+  apt-get install ruby1.9.3
+  apt-get install build-essential
+  gem install nokogiri
+
+Get key for weather underground and put in wunderground.key file
+
+Schedule with cron to send at desired time:
+./morningMail.rb | mail -s [subject] [to@email.address]
