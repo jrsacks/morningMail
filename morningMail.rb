@@ -30,6 +30,7 @@ def print_weather
 end
 
 def process_game(game)
+  puts game.css(".details").text
   ['away','home'].each do |l|
     puts game.css(".#{l} .team").text + game.css(".score .#{l}").text
   end
