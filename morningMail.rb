@@ -10,6 +10,18 @@ def empty_line
   puts ""
 end
 
+def start_info(text)
+  puts "<div class='info'><a href='#'>#{text}</a>"
+end
+
+def end_info
+  puts "</div>"
+end
+
+def detail(text)
+  puts "<div class='detail'>#{text}</div>"
+end
+
 def weather_req(type, city="Chicago", state="IL")
   wunderground_key = File.open(File.dirname(__FILE__) + "/wunderground.key").read.chomp
   JSON.parse(open("http://api.wunderground.com/api/#{wunderground_key}/#{type}/q/#{state}/#{city}.json").read)
@@ -17,16 +29,26 @@ end
 
 def print_weather
   weather_req("forecast")['forecast']['txt_forecast']['forecastday'].slice(0,4).each do |day|
-    puts day['title'] + ":"
+    start_info(day['title'] + ":")
+
+    detail_str = ""
     day['fcttext'].split('.').each do |line|
-      puts "\t#{line}"
+      detail_str += "#{line}<br>"
     end
+    detail(detail_str)
+
+    end_info
   end
 
-  empty_line
+  start_info "Hourly:"
+
+  detail_str = ""
   weather_req("hourly")['hourly_forecast'].slice(0,16).each do |hour|
-    puts hour['FCTTIME']['civil'] + " " + hour['temp']['english'] + " " + hour['condition']
+    detail_str += hour['FCTTIME']['civil'] + " " + hour['temp']['english'] + " " + hour['condition'] + "<br>"
   end
+
+  detail(detail_str)
+  end_info
 end
 
 def process_game(game)
@@ -86,9 +108,28 @@ def print_tennis
   end
 end
 
+puts """Subject: Morning Mail
+Content-type: text/html;
+<html>
+<head>
+<style>
+.detail { display: none;}
+.info { padding-bottom: 15px;}
+.info a { text-decoration: none; }
+.info > a:hover + .detail { display: block; width: 300px;}
+</style>
+</head>
+<body>
+"""
+
 print_weather
-print_sport('college-basketball', 'michigan-wolverines')
-print_sport('nfl', 'chicago-bears', false)
-print_sport('nba', 'chicago-bulls')
-print_sport('nhl', 'chicago-blackhawks')
-print_tennis
+#print_sport('college-basketball', 'michigan-wolverines')
+#print_sport('nfl', 'chicago-bears', false)
+#print_sport('nba', 'chicago-bulls')
+#print_sport('nhl', 'chicago-blackhawks')
+#print_tennis
+
+puts """
+</body>
+</html>
+"""
