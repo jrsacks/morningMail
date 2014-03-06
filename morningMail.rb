@@ -37,9 +37,14 @@ def process_game(game)
   empty_line
 end
 
+def print_elem(doc, class_name)
+  puts doc.css(class_name).text.lstrip.rstrip 
+end
+
 def print_recap(url)
   doc = Nokogiri::HTML(open("http://sports.yahoo.com#{url}"))
-  puts doc.css('.summary-text').text
+  print_elem(doc, '.summary-text')
+  print_elem(doc, '.summary')
   empty_line
 end
 
@@ -88,7 +93,7 @@ end
 
 print_weather
 print_sport('college-basketball', 'michigan-wolverines')
-print_sport('nfl', 'chicago-bears', false)
+#print_sport('nfl', 'chicago-bears', false)
 print_sport('nba', 'chicago-bulls')
 print_sport('nhl', 'chicago-blackhawks')
 print_tennis
