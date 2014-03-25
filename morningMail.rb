@@ -58,11 +58,33 @@ def print_sport(sport, team, add_date=true)
   doc.css('.game').each do |g|
     data_url = g.attr('data-url').to_s
     if data_url.match(yesterday.gsub('-',''))
-      process_game g 
+      process_game g
       print_recap(data_url) if data_url.match(team)
     end
   end
 end
+
+def print_baseball
+  puts "\nMLB"
+  yesterday = (Date.today - 1).strftime "%Y-%m-%d"
+  url = "http://sports.yahoo.com/mlb/scoreboard/?date="
+  url += yesterday
+
+  doc = Nokogiri::HTML(open(url))
+  doc.css('.game').each do |g|
+    ['away','home'].each do |l|
+      line = g.css(".#{l} th em").text.ljust(20)
+      line += " " +  g.css(".#{l} .score").text.ljust(2)
+      line += " " + g.css(".#{l} .hits").text.ljust(2)
+      line += " " + g.css(".#{l} .errors").text
+      puts line
+    end
+    empty_line
+    data_url = g.attr('data-url').to_s
+    print_recap(data_url) if data_url.match("chicago")
+  end
+end
+
 
 def print_tennis
   yesterday = (Date.today - 1).strftime "%Y%m%d" 
@@ -96,4 +118,5 @@ print_sport('college-basketball', 'michigan-wolverines')
 #print_sport('nfl', 'chicago-bears', false)
 print_sport('nba', 'chicago-bulls')
 print_sport('nhl', 'chicago-blackhawks')
+print_baseball
 print_tennis
