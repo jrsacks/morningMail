@@ -16,16 +16,16 @@ def weather_req(type, city="Chicago", state="IL")
 end
 
 def print_weather
+  weather_req("hourly")['hourly_forecast'].slice(0,16).each do |hour|
+    puts hour['FCTTIME']['civil'] + " " + hour['temp']['english'] + " " + hour['condition']
+  end
+  empty_line
+
   weather_req("forecast")['forecast']['txt_forecast']['forecastday'].slice(0,4).each do |day|
     puts day['title'] + ":"
     day['fcttext'].split('.').each do |line|
       puts "\t#{line}"
     end
-  end
-
-  empty_line
-  weather_req("hourly")['hourly_forecast'].slice(0,16).each do |hour|
-    puts hour['FCTTIME']['civil'] + " " + hour['temp']['english'] + " " + hour['condition']
   end
 end
 
@@ -43,7 +43,6 @@ end
 
 def print_recap(url)
   doc = Nokogiri::HTML(open("http://sports.yahoo.com#{url}"))
-  print_elem(doc, '.summary-text')
   print_elem(doc, '.summary')
   empty_line
 end
@@ -114,9 +113,9 @@ def print_tennis
 end
 
 print_weather
-print_sport('college-basketball', 'michigan-wolverines')
+#print_sport('college-basketball', 'michigan-wolverines')
 #print_sport('nfl', 'chicago-bears', false)
+print_baseball
 print_sport('nba', 'chicago-bulls')
 print_sport('nhl', 'chicago-blackhawks')
-print_baseball
 print_tennis
