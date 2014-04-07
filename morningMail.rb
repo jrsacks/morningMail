@@ -29,58 +29,36 @@ def print_weather
   end
 end
 
-def process_game(game)
-  puts game.css(".details").text
-  ['away','home'].each do |l|
-    puts game.css(".#{l} .team").text + game.css(".score .#{l}").text
-  end
-  empty_line
-end
+def print_sport(sport)
+  puts "\n#{sport.upcase}"
+  yesterday = (Date.today - 1).strftime "%Y-%m-%d"
+  url = "http://sports.yahoo.com/ysmobile/_td_api/resource/sportacular-web-scores-store/id/scoreboard;path%3D%7B%22game%22%3A%22#{sport}%22%2C%22date%22%3A%22#{yesterday}%22%7D"
 
-def print_elem(doc, class_name)
-  puts doc.css(class_name).text.lstrip.rstrip 
-end
-
-def print_recap(url)
-  doc = Nokogiri::HTML(open("http://sports.yahoo.com#{url}"))
-  print_elem(doc, '.summary')
-  empty_line
-end
-
-def print_sport(sport, team, add_date=true)
-  puts "\n#{sport.gsub('-',' ').upcase}"
-  yesterday = (Date.today - 1).strftime "%Y-%m-%d" 
-  url = "http://sports.yahoo.com/#{sport}/scoreboard/?date="
-  url += yesterday if add_date
-
-  doc = Nokogiri::HTML(open(url))
-  doc.css('.game').each do |g|
-    data_url = g.attr('data-url').to_s
-    if data_url.match(yesterday.gsub('-',''))
-      process_game g
-      print_recap(data_url) if data_url.match(team)
+  data = JSON.parse(open(url).read)
+  games = data["result"]["games"].map do |game|
+    ["away","home"].map do |l|
+      team_name = game['teams']["#{l}_team"]["display_name"].ljust(15)
+      periods = game['total_score']["game_periods"]["game_period"].map do |periods|
+        (periods["#{l}_points"] || "")
+      end
+      if sport == 'mlb'
+        stats = game['total_score']["#{l}_team_stats"]
+        team_name + " " + periods.join(' ').ljust(26) + stats["runs"].rjust(2) + " " + stats["hits"].rjust(2) + " " + stats["errors"]
+      else
+        team_name + " " + periods.join(' ').ljust(20) + game["total_score"]["total_#{l}_points"]
+      end
     end
   end
-end
 
-def print_baseball
-  puts "\nMLB"
-  yesterday = (Date.today - 1).strftime "%Y-%m-%d"
-  url = "http://sports.yahoo.com/mlb/scoreboard/?date="
-  url += yesterday
-
-  doc = Nokogiri::HTML(open(url))
-  doc.css('.game').each do |g|
-    ['away','home'].each do |l|
-      line = g.css(".#{l} th em").text.ljust(20)
-      line += " " +  g.css(".#{l} .score").text.ljust(2)
-      line += " " + g.css(".#{l} .hits").text.ljust(2)
-      line += " " + g.css(".#{l} .errors").text
-      puts line
+  games.each_with_index do |g, idx|
+    puts g[0]
+    puts g[1]
+    if (g[0] + g[1]).match(/Chi/)
+      gameId = data["result"]["games"][idx]["game_id"].gsub("#{sport}.g.","")
+      url = "http://sports.yahoo.com/ysmobile/_td_api/resource/sportacular-web-game-store/id/game-detail?crumb=generic&gType=#{sport}&gameId=#{gameId}"
+      puts JSON.parse(open(url).read)["article"]["summary"]
     end
     empty_line
-    data_url = g.attr('data-url').to_s
-    print_recap(data_url) if data_url.match("chicago")
   end
 end
 
@@ -113,9 +91,7 @@ def print_tennis
 end
 
 print_weather
-#print_sport('college-basketball', 'michigan-wolverines')
-#print_sport('nfl', 'chicago-bears', false)
-print_baseball
-print_sport('nba', 'chicago-bulls')
-print_sport('nhl', 'chicago-blackhawks')
+print_sport("mlb")
+print_sport("nba")
+print_sport("nhl")
 print_tennis
