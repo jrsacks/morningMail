@@ -35,17 +35,24 @@ def print_sport(sport)
   url = "http://sports.yahoo.com/ysmobile/_td_api/resource/sportacular-web-scores-store/id/scoreboard;path%3D%7B%22game%22%3A%22#{sport}%22%2C%22date%22%3A%22#{yesterday}%22%7D"
 
   data = JSON.parse(open(url).read)
-  games = data["result"]["games"].map do |game|
-    ["away","home"].map do |l|
-      team_name = game['teams']["#{l}_team"]["display_name"].ljust(15)
-      periods = game['total_score']["game_periods"]["game_period"].map do |periods|
-        (periods["#{l}_points"] || "")
-      end
-      if sport == 'mlb'
-        stats = game['total_score']["#{l}_team_stats"]
-        team_name + " " + periods.join(' ').ljust(26) + stats["runs"].rjust(2) + " " + stats["hits"].rjust(2) + " " + stats["errors"]
-      else
-        team_name + " " + periods.join(' ').ljust(20) + game["total_score"]["total_#{l}_points"]
+  games = []
+  if data["result"]["games"].is_a? Array
+    games = data["result"]["games"].map do |game|
+      ["away","home"].map do |l|
+        team_name = game['teams']["#{l}_team"]["display_name"].ljust(15)
+        periods = if game['total_score']["game_periods"]["game_period"].is_a? Array
+          game['total_score']["game_periods"]["game_period"].map do |periods|
+            (periods["#{l}_points"] || "")
+          end
+        else
+          []
+        end
+        if sport == 'mlb'
+          stats = game['total_score']["#{l}_team_stats"]
+          team_name + " " + periods.join(' ').ljust(26) + stats["runs"].rjust(2) + " " + stats["hits"].rjust(2) + " " + stats["errors"]
+        else
+          team_name + " " + periods.join(' ').ljust(20) + game["total_score"]["total_#{l}_points"]
+        end
       end
     end
   end
