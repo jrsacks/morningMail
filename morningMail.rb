@@ -63,7 +63,10 @@ def print_sport(sport)
     if (g[0] + g[1]).match(/Chi/)
       gameId = data["result"]["games"][idx]["game_id"].gsub("#{sport}.g.","")
       url = "http://sports.yahoo.com/ysmobile/_td_api/resource/sportacular-web-game-store/id/game-detail?crumb=generic&gType=#{sport}&gameId=#{gameId}"
-      puts JSON.parse(open(url).read)["article"]["summary"]
+      begin
+        puts JSON.parse(open(url).read)["article"]["summary"]
+      rescue =>e
+      end
     end
     empty_line
   end
