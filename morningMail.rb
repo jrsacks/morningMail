@@ -17,15 +17,18 @@ end
 
 def print_weather
   weather_req("hourly")['hourly_forecast'].slice(0,16).each do |hour|
-    puts hour['FCTTIME']['civil'] + " " + hour['temp']['english'] + " " + hour['condition']
+    puts hour['FCTTIME']['civil'].rjust(8) + " " + hour['temp']['english'].ljust(4) + hour['condition']
   end
   empty_line
 
   weather_req("forecast")['forecast']['txt_forecast']['forecastday'].slice(0,4).each do |day|
     puts day['title'] + ":"
     day['fcttext'].split('.').each do |line|
-      puts "\t#{line}"
+      line.split('and').each do |part|
+        puts part
+      end
     end
+    empty_line
   end
 end
 
