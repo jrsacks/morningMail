@@ -39,7 +39,7 @@ def print_sport(sport)
   if data["result"]["games"].is_a? Array
     games = data["result"]["games"].map do |game|
       ["away","home"].map do |l|
-        team_name = game['teams']["#{l}_team"]["display_name"].ljust(15)
+        team_name = game['teams']["#{l}_team"]["abbr"].ljust(4)
         periods = if game['total_score']["game_periods"]["game_period"].is_a? Array
           game['total_score']["game_periods"]["game_period"].map do |periods|
             (periods["#{l}_points"] || "")
