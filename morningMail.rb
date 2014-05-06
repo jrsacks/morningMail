@@ -32,6 +32,12 @@ def print_weather
   end
 end
 
+def important_team(city, teams)
+  ["away_team","home_team"].detect do |l|
+    teams[l]['full_name'].match city
+  end
+end
+
 def print_sport(sport)
   puts "\n#{sport.upcase}"
   yesterday = (Date.today - 1).strftime "%Y-%m-%d"
@@ -63,7 +69,7 @@ def print_sport(sport)
   games.each_with_index do |g, idx|
     puts g[0]
     puts g[1]
-    if (g[0] + g[1]).match(/Chi/)
+    if important_team("Chicago", data["result"]["games"][idx]["teams"])
       gameId = data["result"]["games"][idx]["game_id"].gsub("#{sport}.g.","")
       url = "http://sports.yahoo.com/ysmobile/_td_api/resource/sportacular-web-game-store/id/game-detail;force=true;gType=#{sport};where=%7B%22gameId%22%3A%22#{gameId}%22%7D"
       begin
