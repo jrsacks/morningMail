@@ -1,3 +1,4 @@
 *.pem
 ssh_to_ec2.sh
 wunderground.key
+data

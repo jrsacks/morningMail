@@ -6,40 +6,39 @@ require 'nokogiri'
 require 'date'
 require 'json'
 
-def empty_line
-  puts ""
+def append(text)
+  @output += text + "\n"
 end
 
-def weather_req(type, city="Chicago", state="IL")
+def empty_line
+  append ""
+end
+
+def weather_req(type, city, state)
   wunderground_key = File.open(File.dirname(__FILE__) + "/wunderground.key").read.chomp
   JSON.parse(open("http://api.wunderground.com/api/#{wunderground_key}/#{type}/q/#{state}/#{city}.json").read)
 end
 
-def print_weather
-  weather_req("hourly")['hourly_forecast'].slice(0,16).each do |hour|
-    puts hour['FCTTIME']['civil'].rjust(8) + " " + hour['temp']['english'].ljust(4) + hour['condition']
+def print_weather(city, state)
+  append "Weather for #{city}, #{state}"
+  weather_req("hourly", city, state)['hourly_forecast'].slice(0,16).each do |hour|
+    append hour['FCTTIME']['civil'].rjust(8) + " " + hour['temp']['english'].ljust(4) + hour['condition']
   end
   empty_line
 
-  weather_req("forecast")['forecast']['txt_forecast']['forecastday'].slice(0,4).each do |day|
-    puts day['title'] + ":"
+  weather_req("forecast", city, state)['forecast']['txt_forecast']['forecastday'].slice(0,4).each do |day|
+    append day['title'] + ":"
     day['fcttext'].split('.').each do |line|
       line.split('and').each do |part|
-        puts part
+        append part
       end
     end
     empty_line
   end
 end
 
-def important_team(city, teams)
-  ["away_team","home_team"].detect do |l|
-    teams[l]['full_name'].match city
-  end
-end
-
-def print_sport(sport)
-  puts "\n#{sport.upcase}"
+def print_sport(sport, recaps=[])
+  append "\n#{sport.upcase}"
   yesterday = (Date.today - 1).strftime "%Y-%m-%d"
   url = "http://sports.yahoo.com/ysmobile/_td_api/resource/sportacular-web-scores-store/id/scoreboard;path%3D%7B%22game%22%3A%22#{sport}%22%2C%22date%22%3A%22#{yesterday}%22%7D"
 
@@ -67,13 +66,14 @@ def print_sport(sport)
   end
 
   games.each_with_index do |g, idx|
-    puts g[0]
-    puts g[1]
-    if important_team("Chicago", data["result"]["games"][idx]["teams"])
+    append g[0]
+    append g[1]
+    teams = data["result"]["games"][idx]["teams"]
+    if recaps.include?(teams["away_team"]["full_name"]) || recaps.include?(teams["home_team"]["full_name"])
       gameId = data["result"]["games"][idx]["game_id"].gsub("#{sport}.g.","")
       url = "http://sports.yahoo.com/ysmobile/_td_api/resource/sportacular-web-game-store/id/game-detail;force=true;gType=#{sport};where=%7B%22gameId%22%3A%22#{gameId}%22%7D"
       begin
-        puts JSON.parse(open(url).read)["article"]["summary"]
+        append JSON.parse(open(url).read)["article"]["summary"]
       rescue =>e
       end
     end
@@ -93,7 +93,7 @@ def print_tennis
       event = event.previous
     end
     event_title = event.css('a').text 
-    puts event_title unless event_title == last_event_title
+    append event_title unless event_title == last_event_title
     last_event_title = event_title
 
     first_winner = '*'
@@ -103,14 +103,24 @@ def print_tennis
       first_winner = ''
     end
 
-    printf "%-1s%-25s %s\n", first_winner, m.css('.teamLine a').text, (m.css('.lsLine2').map { |s| s.text }).join(' ')
-    printf "%-1s%-25s %s\n", second_winner, m.css('.teamLine2 a').text, (m.css('.lsLine3').map { |s| s.text }).join(' ')
+    append(sprintf "%-1s%-25s %s\n", first_winner, m.css('.teamLine a').text, (m.css('.lsLine2').map { |s| s.text }).join(' '))
+    append(sprintf "%-1s%-25s %s\n", second_winner, m.css('.teamLine2 a').text, (m.css('.lsLine3').map { |s| s.text }).join(' '))
     empty_line
   end
 end
 
-print_weather
-print_sport("mlb")
-print_sport("nba")
-print_sport("nhl")
-print_tennis
+Dir.glob("data/*") do |file|
+  @output = ''
+  config = JSON.parse(File.read(file))
+  config["weather"].each do |location|
+    print_weather(location["city"], location["state"])
+  end
+  config["sports"].each do |sport|
+    if sport["name"] == "tennis"
+      print_tennis
+    else
+      print_sport(sport["name"], sport["recaps"])
+    end
+  end
+  system("mail -s 'Morning Mail' #{config["email"]} <<DOC\n#{@output}\nDOC")
+end
