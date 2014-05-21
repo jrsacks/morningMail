@@ -19,5 +19,7 @@ Ruby and Gems
 
 Get key for weather underground and put in wunderground.key file
 
-Schedule with cron to send at desired time:
-./morningMail.rb | mail -s [subject] [to@email.address]
+Create data directory with one file per user to email
+
+Data files in JSON format, example:
+{"email":"jrsacks@gmail.com","weather":[{"city":"Chicago","state":"IL"}],"sports":[{"name":"mlb","recaps":["Chicago Cubs","Chicago White Sox"]},{"name":"nba","recaps":["Chicago Bulls"]},{"name":"nhl","recaps":["Chicago Blackhawks"]},{"name":"tennis"}]}
