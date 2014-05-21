@@ -103,8 +103,8 @@ def print_tennis
       first_winner = ''
     end
 
-    append(sprintf "%-1s%-25s %s\n", first_winner, m.css('.teamLine a').text, (m.css('.lsLine2').map { |s| s.text }).join(' '))
-    append(sprintf "%-1s%-25s %s\n", second_winner, m.css('.teamLine2 a').text, (m.css('.lsLine3').map { |s| s.text }).join(' '))
+    append(sprintf "%-1s%-25s %s", first_winner, m.css('.teamLine a').text, (m.css('.lsLine2').map { |s| s.text }).join(' '))
+    append(sprintf "%-1s%-25s %s", second_winner, m.css('.teamLine2 a').text, (m.css('.lsLine3').map { |s| s.text }).join(' '))
     empty_line
   end
 end
