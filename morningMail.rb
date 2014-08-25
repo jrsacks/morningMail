@@ -37,6 +37,13 @@ def print_weather(city, state)
   end
 end
 
+def only_yesterday(games)
+  yesterday = (Date.today - 1).strftime "%m%d"
+  games.select do |game|
+    game["game_url"].match yesterday
+  end
+end
+
 def print_sport(sport, recaps=[])
   append "\n#{sport.upcase}"
   yesterday = (Date.today - 1).strftime "%Y-%m-%d"
@@ -45,7 +52,7 @@ def print_sport(sport, recaps=[])
   data = JSON.parse(open(url).read)
   games = []
   if data["result"]["games"].is_a? Array
-    games = data["result"]["games"].map do |game|
+    games = only_yesterday(data["result"]["games"]).map do |game|
       ["away","home"].map do |l|
         team_name = game['teams']["#{l}_team"]["abbr"].ljust(4)
         periods = if game['total_score']["game_periods"]["game_period"].is_a? Array
