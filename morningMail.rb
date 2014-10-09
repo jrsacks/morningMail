@@ -123,10 +123,13 @@ Dir.glob("data/*") do |file|
     print_weather(location["city"], location["state"])
   end
   config["sports"].each do |sport|
-    if sport["name"] == "tennis"
-      print_tennis
-    else
-      print_sport(sport["name"], sport["recaps"])
+    begin
+      if sport["name"] == "tennis"
+        print_tennis
+      else
+        print_sport(sport["name"], sport["recaps"])
+      end
+    rescue => e
     end
   end
   system("mail -s 'Morning Mail' #{config["email"]} <<DOC\n#{@output}\nDOC")
