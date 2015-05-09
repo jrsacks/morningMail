@@ -13,7 +13,7 @@ def user_credentials
 end
 
 def oauth_req?(path)
-  path =~ /^\oauth2/
+  path =~ /^\/oauth2/
 end
 
 def valid_users
@@ -39,7 +39,6 @@ before do
     redirect to('/oauth2authorize')
   end
   if user_credentials.access_token && !oauth_req?(request.path_info)
-    STDERR.puts session[:user].inspect
     result = settings.api_client.execute(:api_method => settings.oauth2_api.people.get,
                                          :parameters => {'userId' => 'me'},
                                          :authorization => user_credentials)
