@@ -3,14 +3,82 @@
   <head>
     <title>Morning Mail Configuration</title>
     <script src="/jquery-2.1.4.min.js"></script>
+    <script src="/jsoneditor.js"></script>
+    <link rel="stylesheet" href="/bootstrap.min.css">
+    <style type='text/css'>
+      body {
+        padding-top: 50px;
+      }
+    </style>
   </head>
   <body>
-    <h1>Morning Mail Config</h1>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">Morning Mail Config</a>
+        </div>
+      </div>
+    </nav>
+    <div class='container-fluid'>
+      <div class='row-fluid'>
+        <div id='editor_holder'></div>
+      </div>
+      <div class='row-fluid'>
+        <button>Submit</button>
+      </div>
+    </div>
   </body>
   <script>
     $(document).on("ready", function(){
       $.getJSON("/data", function(config){
-        $('body').append($("<p>").text(JSON.stringify(config)));
+        JSONEditor.defaults.options.theme = 'bootstrap3';
+        JSONEditor.defaults.options.iconlib = "bootstrap3";
+
+        var editor = new JSONEditor(document.getElementById('editor_holder'),{
+          schema: {
+            title: "Config",
+            type: "object",
+            format: "grid",
+            properties: {
+              email: {
+                type: "string",
+                },
+                weather: {
+                  type: "array",
+                  format: "table",
+                  items : {
+                    type: "object",
+                    properties: {
+                      city : {type: "string"},
+                      state : {type: "string"}
+                    }
+                  }
+                  },
+                  sports: {
+                    type: "array",
+                    format: "table",
+                    items : {
+                      type: "object",
+                      properties: {
+                        name : {type: "string"},
+                        recaps : {
+                          default: [], 
+                          type: "array", 
+                          format: "table", 
+                          items: {type:"string"}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+        });
+
+        editor.setValue(config);
+
+        $('button').click(function(){
+          $.post("/data", JSON.stringify(editor.getValue()));
+        });
       });
     });
   </script>
