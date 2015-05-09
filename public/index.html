@@ -60,12 +60,12 @@
                     items : {
                       type: "object",
                       properties: {
-                        name : {type: "string"},
+                        name : {type: "string", enum: ["ncaaf", "ncaab", "nfl", "nba", "nhl", "tennis", "mlb"]},
                         recaps : {
                           default: [], 
                           type: "array", 
                           format: "table", 
-                          items: {type:"string"}
+                          items: {type:"string", title: "Teams to Recap"}
                         }
                       }
                     }

@@ -20,6 +20,13 @@ def valid_users
   Dir.glob("data/*").map { |f| f.split('/').last + "@gmail.com" }
 end
 
+def data_file
+  email = session[:user]["emails"].find do |email|
+    valid_users.include? email["value"]
+  end
+  "data/#{email["value"].split('@').first}"
+end
+
 configure do
   client = Google::APIClient.new
   client.authorization.client_id = ENV["CLIENT_ID"]
@@ -70,14 +77,14 @@ get '/oauth2callback' do
 end
 
 get '/data' do
-  email = session[:user]["emails"].find do |email|
-    valid_users.include? email["value"]
-  end
-  File.read("data/#{email["value"].split('@').first}")
+  File.read(data_file)
 end
 
 post '/data' do
   data = request.body.read
+  File.open(data_file, 'w') do |f|
+    f.puts data
+  end
 end
 
 get '/' do
