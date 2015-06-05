@@ -27,6 +27,12 @@ def data_file
   "data/#{email["value"].split('@').first}"
 end
 
+def get_authorization
+  settings.api_client.execute(:api_method => settings.oauth2_api.people.get,
+                              :parameters => {'userId' => 'me'},
+                              :authorization => user_credentials)
+end
+
 configure do
   client = Google::APIClient.new
   client.authorization.client_id = ENV["CLIENT_ID"]
@@ -46,9 +52,11 @@ before do
     redirect to('/oauth2authorize')
   end
   if user_credentials.access_token && !oauth_req?(request.path_info)
-    result = settings.api_client.execute(:api_method => settings.oauth2_api.people.get,
-                                         :parameters => {'userId' => 'me'},
-                                         :authorization => user_credentials)
+    result = get_authorization
+    if result.status == 401
+      user_credentials.fetch_access_token!
+      result = get_authorization
+    end
     session[:user] = result.data.to_hash
     is_valid = session[:user]["emails"].any? do |email|
       valid_users.include? email["value"]
