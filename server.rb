@@ -54,8 +54,7 @@ before do
   if user_credentials.access_token && !oauth_req?(request.path_info)
     result = get_authorization
     if result.status == 401
-      user_credentials.fetch_access_token!
-      result = get_authorization
+      redirect to('/oauth2authorize')
     end
     session[:user] = result.data.to_hash
     is_valid = session[:user]["emails"].any? do |email|
