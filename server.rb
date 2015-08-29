@@ -50,27 +50,16 @@ end
 before do
   unless user_credentials.access_token || oauth_req?(request.path_info)
     redirect to('/oauth2authorize')
-  end
-  if user_credentials.access_token && !oauth_req?(request.path_info)
-    result = get_authorization
-    if result.status == 401
-      redirect to('/oauth2authorize')
-    end
-    session[:user] = result.data.to_hash
-    is_valid = session[:user]["emails"].any? do |email|
-      valid_users.include? email["value"]
-    end
-    unless is_valid
-      halt "Access Denied"
+  else
+    if !oauth_req?(request.path_info)
+      is_valid = session[:user]["emails"].any? do |email|
+        valid_users.include? email["value"]
+      end
+      unless is_valid
+        halt "Access Denied"
+      end
     end
   end
-end
-
-after do
-  session[:access_token] = user_credentials.access_token
-  session[:refresh_token] = user_credentials.refresh_token
-  session[:expires_in] = user_credentials.expires_in
-  session[:issued_at] = user_credentials.issued_at
 end
 
 get '/oauth2authorize' do
@@ -80,6 +69,11 @@ end
 get '/oauth2callback' do
   user_credentials.code = params[:code] if params[:code]
   user_credentials.fetch_access_token!
+  session[:access_token] = user_credentials.access_token
+  session[:refresh_token] = user_credentials.refresh_token
+  session[:expires_in] = user_credentials.expires_in
+  session[:issued_at] = user_credentials.issued_at
+  session[:user] = get_authorization.data.to_hash
   redirect to('/')
 end
 
