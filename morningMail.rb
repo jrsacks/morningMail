@@ -78,10 +78,14 @@ def print_sport(sport, recaps=[])
     teams = data["result"]["games"][idx]["teams"]
     if recaps.include?(teams["away_team"]["full_name"]) || recaps.include?(teams["home_team"]["full_name"])
       gameId = data["result"]["games"][idx]["game_id"].gsub("#{sport}.g.","")
-      url = "http://sports.yahoo.com/ysmobile/_td_api/resource/sportacular-web-game-store/id/game-detail;force=true;gType=#{sport};where=%7B%22gameId%22%3A%22#{gameId}%22%7D"
+      STDERR.puts gameId
+      fullId = sport + '.g.' + gameId
+      url = "http://sports.yahoo.com/site/api/resource/sports.game.articles;id=#{fullId}"
+      STDERR.puts url
       begin
-        append JSON.parse(open(url).read)["article"]["summary"]
+        append JSON.parse(open(url).read)["gamearticles"][fullId]["recap"]["summary"]
       rescue =>e
+        STDERR.puts e
       end
     end
     empty_line
