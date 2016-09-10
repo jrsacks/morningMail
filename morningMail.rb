@@ -37,37 +37,25 @@ def print_weather(city, state)
   end
 end
 
-def only_yesterday(games)
-  yesterday = (Date.today - 1).strftime "%m%d"
-  games.select do |game|
-    game["game_url"].match yesterday
-  end
-end
-
 def print_sport(sport, recaps=[])
   append "\n#{sport.upcase}"
   yesterday = (Date.today - 1).strftime "%Y-%m-%d"
-  url = "http://sports.yahoo.com/ysmobile/_td_api/resource/sportacular-web-scores-store/id/scoreboard;path%3D%7B%22game%22%3A%22#{sport}%22%2C%22date%22%3A%22#{yesterday}%22%7D"
+  url = "https://api-secure.sports.yahoo.com/v1/editorial/s/scoreboard?leagues=#{sport}&date=#{yesterday}"
+  url += "&top25=1" if sport.match(/ncaa/)
 
   data = JSON.parse(open(url).read)
-  games = []
-  if data["result"]["games"].is_a? Array
-    games = only_yesterday(data["result"]["games"]).map do |game|
-      ["away","home"].map do |l|
-        team_name = game['teams']["#{l}_team"]["abbr"].ljust(4)
-        periods = if game['total_score']["game_periods"]["game_period"].is_a? Array
-          game['total_score']["game_periods"]["game_period"].map do |periods|
-            (periods["#{l}_points"] || "")
-          end
-        else
-          []
-        end
-        if sport == 'mlb'
-          stats = game['total_score']["#{l}_team_stats"]
-          team_name + " " + periods.join(' ').ljust(26) + stats["runs"].rjust(2) + " " + stats["hits"].rjust(2) + " " + stats["errors"]
-        else
-          team_name + " " + periods.join(' ').ljust(20) + game["total_score"]["total_#{l}_points"]
-        end
+  games = data["service"]["scoreboard"]["games"].map do |gameid, game|
+    ["away","home"].map do |l|
+      id = game["#{l}_team_id"]
+      team_name = data["service"]["scoreboard"]["teams"][id]["full_name"]
+      periods = game["game_periods"].map do |periods|
+        (periods["#{l}_points"] || "")
+      end
+      if sport == 'mlb'
+        stats = game["#{l}_team_stats"]
+        team_name + " " + periods.join(' ').ljust(26) + stats[0]["runs"].rjust(2) + " " + stats[1]["hits"].rjust(2) + " " + stats[2]["errors"]
+      else
+        team_name + " " + periods.join(' ').ljust(20) + game["total_#{l}_points"]
       end
     end
   end
@@ -75,15 +63,13 @@ def print_sport(sport, recaps=[])
   games.each_with_index do |g, idx|
     append g[0]
     append g[1]
-    teams = data["result"]["games"][idx]["teams"]
-    if recaps.include?(teams["away_team"]["full_name"]) || recaps.include?(teams["home_team"]["full_name"])
-      gameId = data["result"]["games"][idx]["game_id"].gsub("#{sport}.g.","")
-      STDERR.puts gameId
-      fullId = sport + '.g.' + gameId
-      url = "http://sports.yahoo.com/site/api/resource/sports.game.articles;id=#{fullId}"
-      STDERR.puts url
+    game = data["service"]["scoreboard"]["games"].values[idx]
+    teams = data["service"]["scoreboard"]["teams"]
+    if recaps.include?(teams[game["away_team_id"]]["full_name"]) || recaps.include?(teams[game["away_team_id"]]["full_name"])
+      gameId = game["gameid"]
+      url = "http://sports.yahoo.com/site/api/resource/sports.game.articles;id=#{gameId}"
       begin
-        append JSON.parse(open(url).read)["gamearticles"][fullId]["recap"]["summary"]
+        append JSON.parse(open(url).read)["gamearticles"][gameId]["recap"]["summary"]
       rescue =>e
         STDERR.puts e
       end
