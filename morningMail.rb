@@ -95,7 +95,7 @@ def print_tennis
 
     first_winner = '*'
     second_winner = "" 
-    if m.css('.arrow').attr('style').value.match /43/
+    if m.css('.teamLine2 .arrowWrapper')
       second_winner = "*" 
       first_winner = ''
     end
