@@ -65,7 +65,7 @@ def print_sport(sport, recaps=[])
     append g[1]
     game = data["service"]["scoreboard"]["games"].values[idx]
     teams = data["service"]["scoreboard"]["teams"]
-    if recaps.include?(teams[game["away_team_id"]]["full_name"]) || recaps.include?(teams[game["away_team_id"]]["full_name"])
+    if recaps.include?(teams[game["home_team_id"]]["full_name"]) || recaps.include?(teams[game["away_team_id"]]["full_name"])
       gameId = game["gameid"]
       url = "http://sports.yahoo.com/site/api/resource/sports.game.articles;id=#{gameId}"
       begin
