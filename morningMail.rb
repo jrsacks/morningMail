@@ -95,7 +95,7 @@ def print_tennis
 
     first_winner = '*'
     second_winner = "" 
-    if m.css('.teamLine2 .arrowWrapper')
+    if m.css('.teamLine2 .arrowWrapper').length > 0
       second_winner = "*" 
       first_winner = ''
     end
