@@ -45,6 +45,8 @@ configure do
   set :port, 4566
   set :valid_users, valid_users
   set :public_folder, File.dirname(__FILE__) + '/public'
+  set :ssl_certificate, "#{ENV["CERT_DIR"]}/fullchain.pem"
+  set :ssl_key, "#{ENV["CERT_DIR"]}/privkey.pem"
 end
 
 before do
