@@ -67,11 +67,24 @@ def print_sport(sport, recaps=[])
     teams = data["service"]["scoreboard"]["teams"]
     if recaps.include?(teams[game["home_team_id"]]["full_name"]) || recaps.include?(teams[game["away_team_id"]]["full_name"])
       gameId = game["gameid"]
-      url = "https://sports.yahoo.com/site/api/resource/sports.game.articles;id=#{gameId}"
-      begin
-        append JSON.parse(open(url).read)["gamearticles"][gameId]["recap"]["summary"]
-      rescue =>e
-        STDERR.puts e
+      if sport == 'mlb'
+        url = "https://api-secure.sports.yahoo.com/v1/editorial/s/boxscore/#{gameId}?lang=en-US&region=US&tz=America%2FChicago&ysp_redesign=1&ysp_platform=smartphone&mode=&v=4&ysp_enable_last_update=1&polling=0"
+        boxscore = JSON.parse(open(url).read)["service"]["boxscore"]
+        players = boxscore["players"]
+        boxscore["gamescoring_summary"][gameId].each do |k, play|
+          inning = 1 + (play["period"].to_i / 2)
+          text = play["text"].gsub("[","").gsub("]","").gsub(/mlb.p.[0-9]*/) do |m|
+            players[m]["display_name"]
+          end
+          append "#{inning} #{play["away_score"]}-#{play["home_score"]}: #{text}"
+        end
+      else
+        url = "https://sports.yahoo.com/site/api/resource/sports.game.articles;id=#{gameId}"
+        begin
+          append JSON.parse(open(url).read)["gamearticles"][gameId]["recap"]["summary"]
+        rescue =>e
+          STDERR.puts e
+        end
       end
     end
     empty_line
